@@ -28,5 +28,5 @@ if __name__ == "__main__":
 
     tracking.start()
 
-    tk_app = App(tkinter.Tk(), "Ceci est un titre", door_to_heaven, server, serverSensors)
+    tk_app = App(tkinter.Tk(), "Projet IA Ingé 2", door_to_heaven, server, serverSensors)
 

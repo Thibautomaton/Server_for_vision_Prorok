@@ -40,6 +40,10 @@ class App:
                                            background='#cfcfcf')
         self.command_label.grid(row=1, column=0)
 
+        self.button_label = tkinter.Label(self.window, text="Control the robot :",font=("calibri", 20),
+                                           fg='#3d3b3b',
+                                           background='#cfcfcf')
+        self.button_label.grid(row=3,column=0,sticky='n')
         # IMAGES
 
         self.down_green_arrow = PIL.Image.open("green_arrow.png")
@@ -71,7 +75,16 @@ class App:
         self.forward_canvas.grid(row=2, column=0, sticky='nsw')
 
         self.canvas = tkinter.Canvas(window, width=960, height=540, highlightthickness=0)
-        self.canvas.grid(column=1, row=2)
+        self.canvas.grid(column=1, row=2, rowspan=3)
+
+        # BUTTONS
+
+        self.var = tkinter.IntVar()
+        self.var.set(0)
+        self.manualCommandButton = tkinter.Radiobutton(self.window, text="manually", variable=self.var, value=0, command=self.changeMode)
+        self.manualCommandButton.grid(row=3, column=0, sticky='s')
+        self.autoCommandButton = tkinter.Radiobutton(self.window, text="automatically", variable=self.var, value=1)
+        self.autoCommandButton.grid(row=4, column=0, sticky='n')
 
         self.dic_command = {
             "move_forward": False,
@@ -81,10 +94,10 @@ class App:
         }
 
         self.dic_command2 = {
-            "forward" : True,
-            "backwards" : True,
-            "left" : True,
-            "right" : True
+            "forward": True,
+            "backwards": True,
+            "left": True,
+            "right": True
         }
 
         self.dic_sensors = {
@@ -109,8 +122,8 @@ class App:
         frame = self.door_to_heaven.get_frame_display_frame()
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         frame = cv2.resize(frame, (
-        math.floor(self.canvas.winfo_height() * 16 / 9) if self.canvas.winfo_height() > 100 else math.floor(
-            100 * 16 / 9), self.canvas.winfo_height() if self.canvas.winfo_height() > 100 else 100))
+            math.floor(self.canvas.winfo_height() * 16 / 9) if self.canvas.winfo_height() > 100 else math.floor(
+                100 * 16 / 9), self.canvas.winfo_height() if self.canvas.winfo_height() > 100 else 100))
         self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
         self.canvas.create_image(0, 0, imag=self.photo, anchor=tkinter.NW)
         self.window.after(self.delay, self.update_frame)
@@ -119,59 +132,63 @@ class App:
             self.automatic_pid_follower()
             t_prev = time.time()
 
-
     def keydown(self, key):
-        if (key == 'z' and self.dic_command2["forward"]):
-            self.dic_command["move_forward"] = True
-            self.forward_canvas.delete("forward")
-            self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_green_arrow_img, tags='forward')
-        elif (key == 's' and self.dic_command2["backwards"]):
-            self.dic_command["move_backwards"] = True
-            self.forward_canvas.delete("backwards")
-            self.forward_canvas.create_image(150, 150, anchor=tkinter.N, image=self.down_green_arrow_img,
-                                             tags='backwards')
-        elif (key == 'q' and self.dic_command2["left"]):
-            self.dic_command["rotate_left"] = True
-            self.forward_canvas.delete("left")
-            self.forward_canvas.create_image(75, 75, anchor=tkinter.N, image=self.left_green_arrow_img, tags='left')
-        elif (key == 'd' and self.dic_command2["right"]):
-            self.dic_command["rotate_right"] = True
-            self.forward_canvas.delete("right")
-            self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_green_arrow_img, tags='right')
+        if self.var.get() == 0:
+            self.dic_command["move_forward"] = False
+            self.dic_command["rotate_right"] = False
+            self.dic_command["rotate_left"] = False
+            self.dic_command["move_backwards"] = False
+            if (key == 'z' and self.dic_command2["forward"]):
+                self.dic_command["move_forward"] = True
+                self.forward_canvas.delete("forward")
+                self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_green_arrow_img, tags='forward')
+            elif (key == 's' and self.dic_command2["backwards"]):
+                self.dic_command["move_backwards"] = True
+                self.forward_canvas.delete("backwards")
+                self.forward_canvas.create_image(150, 150, anchor=tkinter.N, image=self.down_green_arrow_img,
+                                                 tags='backwards')
+            elif (key == 'q' and self.dic_command2["left"]):
+                self.dic_command["rotate_left"] = True
+                self.forward_canvas.delete("left")
+                self.forward_canvas.create_image(75, 75, anchor=tkinter.N, image=self.left_green_arrow_img, tags='left')
+            elif (key == 'd' and self.dic_command2["right"]):
+                self.dic_command["rotate_right"] = True
+                self.forward_canvas.delete("right")
+                self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_green_arrow_img, tags='right')
 
-        self.window.update()
-        self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
-                                                               self.dic_command["move_backwards"],
-                                                               self.dic_command["rotate_left"],
-                                                               self.dic_command["rotate_right"]))
+            self.window.update()
+            self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
+                                                                   self.dic_command["move_backwards"],
+                                                                   self.dic_command["rotate_left"],
+                                                                   self.dic_command["rotate_right"]))
 
     def keyup(self, key):
+        if self.var.get() == 0:
+            if (key == 'z'):
+                self.dic_command["move_forward"] = False
+                self.forward_canvas.delete("forward")
+                self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_white_arrow_img, tags='forward')
 
-        if (key == 'z'):
-            self.dic_command["move_forward"] = False
-            self.forward_canvas.delete("forward")
-            self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_white_arrow_img, tags='forward')
+            elif (key == 's'):
+                self.dic_command["move_backwards"] = False
+                self.forward_canvas.delete("backwards")
+                self.forward_canvas.create_image(150, 150, anchor=tkinter.N, image=self.down_white_arrow_img,
+                                                 tags='backwards')
 
-        elif (key == 's'):
-            self.dic_command["move_backwards"] = False
-            self.forward_canvas.delete("backwards")
-            self.forward_canvas.create_image(150, 150, anchor=tkinter.N, image=self.down_white_arrow_img,
-                                             tags='backwards')
+            elif (key == 'q'):
+                self.dic_command["rotate_left"] = False
+                self.forward_canvas.delete("left")
+                self.forward_canvas.create_image(75, 75, anchor=tkinter.N, image=self.left_white_arrow_img, tags='left')
+            elif (key == 'd'):
+                self.dic_command["rotate_right"] = False
+                self.forward_canvas.delete("right")
+                self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_white_arrow_img, tags='right')
 
-        elif (key == 'q'):
-            self.dic_command["rotate_left"] = False
-            self.forward_canvas.delete("left")
-            self.forward_canvas.create_image(75, 75, anchor=tkinter.N, image=self.left_white_arrow_img, tags='left')
-        elif (key == 'd'):
-            self.dic_command["rotate_right"] = False
-            self.forward_canvas.delete("right")
-            self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_white_arrow_img, tags='right')
-
-        self.window.update()
-        self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
-                                                               self.dic_command["move_backwards"],
-                                                               self.dic_command["rotate_left"],
-                                                               self.dic_command["rotate_right"]))
+            self.window.update()
+            self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
+                                                                   self.dic_command["move_backwards"],
+                                                                   self.dic_command["rotate_left"],
+                                                                   self.dic_command["rotate_right"]))
 
     def on_press(self, key):
         try:
@@ -189,7 +206,7 @@ class App:
     def on_release(self, key):
         print('{0} released'.format(
             key))
-        try :
+        try:
             if key.char == 'z' or key.char == 'q' or key.char == 's' or key.char == 'd':
                 self.keyup(key.char)
             else:
@@ -228,42 +245,43 @@ class App:
             self.dic_command2["right"] = True
 
         self.robotNavigation()
+        print(self.var.get())
 
     def robotNavigation(self):
-        self.dic_command["move_forward"] = False
-        self.dic_command["rotate_right"] = False
-        self.dic_command["rotate_left"] = False
-        self.dic_command["move_backwards"] = False
+        if self.var.get() == 1:
+            self.dic_command["move_forward"] = False
+            self.dic_command["rotate_right"] = False
+            self.dic_command["rotate_left"] = False
+            self.dic_command["move_backwards"] = False
 
-        if self.dic_command2["forward"] and self.counter == 0:
-            self.dic_command["move_forward"] = True
-        else:
-            if self.counter == 120:
-                self.counter = 0
-            elif self.counter < 120:
-                if self.dic_command2["right"]:
-                    self.dic_command["rotate_right"] = True
-                elif self.dic_command2["left"]:
-                    self.dic_command["rotate_left"] = True
-                else:
-                    self.dic_command["move_backwards"] = True
+            if self.dic_command2["forward"] and self.counter == 0:
+                self.dic_command["move_forward"] = True
+            else:
+                if self.counter == 120:
+                    self.counter = 0
+                elif self.counter < 120:
                     if self.dic_command2["right"]:
                         self.dic_command["rotate_right"] = True
                     elif self.dic_command2["left"]:
                         self.dic_command["rotate_left"] = True
-                self.counter += 1
-            # else:
-            #     counter = 0
+                    else:
+                        self.dic_command["move_backwards"] = True
+                        if self.dic_command2["right"]:
+                            self.dic_command["rotate_right"] = True
+                        elif self.dic_command2["left"]:
+                            self.dic_command["rotate_left"] = True
+                    self.counter += 1
 
-        self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
-                                                               self.dic_command["move_backwards"],
-                                                               self.dic_command["rotate_left"],
-                                                               self.dic_command["rotate_right"]))
+            self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
+                                                                   self.dic_command["move_backwards"],
+                                                                   self.dic_command["rotate_left"],
+                                                                   self.dic_command["rotate_right"]))
+
     def automatic_pid_follower(self):
         b_center = self.door_to_heaven.box_center
         errorx = 960 - b_center[0]
 
-        if b_center!=(0,0):
+        if b_center != (0, 0):
             if errorx > 60:
                 print("LEFT")
                 self.keydown('q')
@@ -272,3 +290,7 @@ class App:
                 print("RIGHT")
                 self.keydown('d')
                 self.keyup('d')
+
+    def changeMode(self):
+        print("COUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCOUUUUUUUUUUUUUUUU")
+        self.server.send_to(server_ep, Message.command_message())
