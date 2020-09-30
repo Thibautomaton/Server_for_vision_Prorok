@@ -15,7 +15,7 @@ import threading
 
 class UdpSocket(Thread):
 
-    def __init__(self, door_to_heaven, threading_event: threading.Event(),  buffer_size: Optional[int] = 64500) -> None:
+    def __init__(self, door_to_heaven, threading_event: threading.Event(), buffer_size: Optional[int] = 64500) -> None:
         """
         Default constructor for UdpSocket object
         :param buffer_size: The size of the buffer used for communication
@@ -35,6 +35,7 @@ class UdpSocket(Thread):
         self.last_image: bytearray = bytearray()
         self.window = door_to_heaven
         self.threading_event = threading_event
+        self.sensorsMessage = ""
 
     def start_socket(self, ip_address_server: str, port_server: int, password: Optional[str] = "") -> None:
         """
@@ -93,8 +94,8 @@ class UdpSocket(Thread):
         :param address: The address and port of the remote machine that send the message
         :return: None
         """
-        print(f"From : \nip address : {address[0]}\nport : {address[1]}")
-        print("time since last :" , time.time() - self.time_rec)
+        # print(f"From : \nip address : {address[0]}\nport : {address[1]}")
+        # print("time since last :", time.time() - self.time_rec)
         data_recv = bytearray(data)
         self.time_rec = time.time()
 
@@ -106,7 +107,8 @@ class UdpSocket(Thread):
                 print("last_image :", len(self.last_image))
                 # first condition used when the image is bigger than the max UDP size
                 # it is then sent within two different UDP packets and needs to be reassembled
-                if self.is_not_first and (time.time() - self.time_rec) < 0.02 and (len(self.last_image)==64488 or len(data_image)==64488):
+                if self.is_not_first and (time.time() - self.time_rec) < 0.02 and (
+                        len(self.last_image) == 64488 or len(data_image) == 64488):
 
                     # conditions for the case when the two parts of the image are not sent in order
                     if len(self.last_image) == 64488:
@@ -150,12 +152,15 @@ class UdpSocket(Thread):
                 print()
             except:
                 print("image data, receive error")
-
+        elif Message.is_message(data.decode("UTF_8")):
+            rcv_string = data.decode("UTF_8")
+            if Message.from_json(rcv_string).id == 103:
+                self.sensorsMessage = Message.from_json(rcv_string).message
         else:
 
             # TODO : try to decode from bytearray to skip one step
             rcv_string = data.decode("UTF_8")
-
+            self.sensorsMessage = rcv_string
             # print(Message.is_message(rcv_string), rcv_string)
             if not Message.is_message(rcv_string):
                 # If the received message is not a message object
@@ -210,3 +215,6 @@ class UdpSocket(Thread):
         :return: None
         """
         self.send_to(ep, "check")
+
+    def getSensorsMessage(self):
+        return self.sensorsMessage
