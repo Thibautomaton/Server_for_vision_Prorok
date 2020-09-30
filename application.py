@@ -7,23 +7,25 @@ import math
 from Message import Message
 from pynput import keyboard
 from tkinter import messagebox
-
+import json
 import sys
+import random
 
-server_ep = ("192.168.1.88", 50000)
+server_ep = ("127.0.0.1", 50001)
 time.sleep(1)
 
 
 class App:
-    def __init__(self, window, window_title, door_to_heaven, server):
+    def __init__(self, window, window_title, door_to_heaven, server, serverSensors):
         self.window = window
         self.window.title(window_title)
         self.window.configure(background='#cfcfcf')
         self.door_to_heaven = door_to_heaven
         self.server = server
+        self.serverSensors = serverSensors
         self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
         self.listener.start()
-
+        self.counter = 0
         self.keypressed = 'z'
         self.keyreleased = True
 
@@ -78,6 +80,20 @@ class App:
             "rotate_right": False
         }
 
+        self.dic_command2 = {
+            "forward" : True,
+            "backwards" : True,
+            "left" : True,
+            "right" : True
+        }
+
+        self.dic_sensors = {
+            "forwardSensor": 100,
+            "backwardsSensor": 100,
+            "leftSensor": 100,
+            "rightSensor": 100
+        }
+
         self.delay = 15
         self.update_frame()
 
@@ -86,6 +102,7 @@ class App:
         self.window.mainloop()
 
     def update_frame(self):
+        self.sensorValueTranslate()
         # self.window.resizable(width = 0 if self.window.winfo_width()>self.window.winfo_height()*16/9 else 200, height = 1)
         frame = self.door_to_heaven.get_frame_display_frame()
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -97,20 +114,20 @@ class App:
         self.window.after(self.delay, self.update_frame)
 
     def keydown(self, key):
-        if (key == 'z'):
+        if (key == 'z' and self.dic_command2["forward"]):
             self.dic_command["move_forward"] = True
             self.forward_canvas.delete("forward")
             self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_green_arrow_img, tags='forward')
-        elif (key == 's'):
+        elif (key == 's' and self.dic_command2["backwards"]):
             self.dic_command["move_backwards"] = True
             self.forward_canvas.delete("backwards")
             self.forward_canvas.create_image(150, 150, anchor=tkinter.N, image=self.down_green_arrow_img,
                                              tags='backwards')
-        elif (key == 'q'):
+        elif (key == 'q' and self.dic_command2["left"]):
             self.dic_command["rotate_left"] = True
             self.forward_canvas.delete("left")
             self.forward_canvas.create_image(75, 75, anchor=tkinter.N, image=self.left_green_arrow_img, tags='left')
-        elif (key == 'd'):
+        elif (key == 'd' and self.dic_command2["right"]):
             self.dic_command["rotate_right"] = True
             self.forward_canvas.delete("right")
             self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_green_arrow_img, tags='right')
@@ -179,5 +196,59 @@ class App:
             sys.exit()
             self.window.destroy()
 
+    def sensorValueTranslate(self):
+        sensorsMessage = self.serverSensors.getSensorsMessage()
+        self.dic_sensors = json.loads(sensorsMessage)
+        print(float(self.dic_sensors["forwardSensor"]))
+        if float(self.dic_sensors["forwardSensor"]) < 1.5 and float(self.dic_sensors["forwardSensor"]) > 0.0:
+            self.dic_command2["forward"] = False
+        else:
+            self.dic_command2["forward"] = True
 
+        if float(self.dic_sensors["backwardsSensor"]) < 1.5 and float(self.dic_sensors["backwardsSensor"]) > 0.0:
+            self.dic_command2["backwards"] = False
+        else:
+            self.dic_command2["backwards"] = True
 
+        if float(self.dic_sensors["leftSensor"]) < 1.5 and float(self.dic_sensors["leftSensor"]) > 0.0:
+            self.dic_command2["left"] = False
+        else:
+            self.dic_command2["left"] = True
+
+        if float(self.dic_sensors["rightSensor"]) < 1.5 and float(self.dic_sensors["rightSensor"]) > 0.0:
+            self.dic_command2["right"] = False
+        else:
+            self.dic_command2["right"] = True
+
+        self.robotNavigation()
+
+    def robotNavigation(self):
+        self.dic_command["move_forward"] = False
+        self.dic_command["rotate_right"] = False
+        self.dic_command["rotate_left"] = False
+        self.dic_command["move_backwards"] = False
+
+        if self.dic_command2["forward"] and self.counter == 0:
+            self.dic_command["move_forward"] = True
+        else:
+            if self.counter == 120:
+                self.counter = 0
+            elif self.counter < 120:
+                if self.dic_command2["right"]:
+                    self.dic_command["rotate_right"] = True
+                elif self.dic_command2["left"]:
+                    self.dic_command["rotate_left"] = True
+                else:
+                    self.dic_command["move_backwards"] = True
+                    if self.dic_command2["right"]:
+                        self.dic_command["rotate_right"] = True
+                    elif self.dic_command2["left"]:
+                        self.dic_command["rotate_left"] = True
+                self.counter += 1
+            # else:
+            #     counter = 0
+
+        self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
+                                                               self.dic_command["move_backwards"],
+                                                               self.dic_command["rotate_left"],
+                                                               self.dic_command["rotate_right"]))
