@@ -35,7 +35,8 @@ class UdpSocket(Thread):
         self.last_image: bytearray = bytearray()
         self.window = door_to_heaven
         self.threading_event = threading_event
-        self.sensorsMessage = ""
+        self.sensorsMessage = "{\"forwardSensor\": \"0\", \"backwardsSensor\": \"0\", \"leftSensor\": \"0\", " \
+                              "\"rightSensor\": \"0\"}";
 
     def start_socket(self, ip_address_server: str, port_server: int, password: Optional[str] = "") -> None:
         """
