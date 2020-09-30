@@ -95,6 +95,8 @@ class App:
         }
 
         self.delay = 15
+
+        self.t_prev = time.time()
         self.update_frame()
 
         self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -112,6 +114,11 @@ class App:
         self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
         self.canvas.create_image(0, 0, imag=self.photo, anchor=tkinter.NW)
         self.window.after(self.delay, self.update_frame)
+
+        if ((time.time() - self.t_prev) > 0.03):
+            self.automatic_pid_follower()
+            t_prev = time.time()
+
 
     def keydown(self, key):
         if (key == 'z' and self.dic_command2["forward"]):
@@ -252,3 +259,16 @@ class App:
                                                                self.dic_command["move_backwards"],
                                                                self.dic_command["rotate_left"],
                                                                self.dic_command["rotate_right"]))
+    def automatic_pid_follower(self):
+        b_center = self.door_to_heaven.box_center
+        errorx = 960 - b_center[0]
+
+        if b_center!=(0,0):
+            if errorx > 60:
+                print("LEFT")
+                self.keydown('q')
+                self.keyup('q')
+            elif errorx < -60:
+                print("RIGHT")
+                self.keydown('d')
+                self.keyup('d')

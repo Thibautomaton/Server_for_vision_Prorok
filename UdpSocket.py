@@ -107,16 +107,15 @@ class UdpSocket(Thread):
                 print("last_image :", len(self.last_image))
                 # first condition used when the image is bigger than the max UDP size
                 # it is then sent within two different UDP packets and needs to be reassembled
-                if self.is_not_first and (time.time() - self.time_rec) < 0.02 and (
-                        len(self.last_image) == 64488 or len(data_image) == 64488):
+                if self.is_not_first and (time.time() - self.time_rec) < 0.02 and (len(self.last_image)>=64488 or len(data_image)==64488):
 
-                    # conditions for the case when the two parts of the image are not sent in order
-                    if len(self.last_image) == 64488:
+                    if len(data_image) == 64488:
                         im = self.last_image + data_image
+                        self.last_image = im
 
-                    elif len(data_image) == 64488:
-                        im = data_image + self.last_image
-                    self.is_not_first = False
+                    else:
+                        im = self.last_image + data_image
+                        self.is_not_first = False
 
                 # normal behavior, if image is smaller than UDP size
                 # the image sent to im is always one frame late to allow

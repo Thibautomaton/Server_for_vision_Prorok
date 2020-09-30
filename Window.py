@@ -18,6 +18,7 @@ class Window(Thread):
         self.all_boxes = []
         self.box_tracked = Box((0,0,0,0))
         self.box_detected = (0,0,0,0)
+        self.box_center = (0,0)
 
     def detect_body_haar(self):
         """
@@ -76,6 +77,7 @@ class Window(Thread):
         for b in self.all_boxes:
             if not b.is_discarded and not b.is_being_discarded:
                 cv2.rectangle(self.disp_img, (b.x, b.y), (b.x + b.w, b.y + b.h), (0, 255, 0), 2)
+                self.box_center = (b.x + b.w/2, b.y + b.h/2)
             elif not b.is_discarded and b.is_being_discarded:
                 cv2.rectangle(self.disp_img, (b.x, b.y), (b.x + b.w, b.y + b.h), (0, 0, 255), 2)
 
