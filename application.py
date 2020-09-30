@@ -2,14 +2,13 @@ import tkinter
 import cv2
 import time
 import PIL.Image, PIL.ImageTk
-import numpy as np
+
 import math
 from Message import Message
 from pynput import keyboard
 from tkinter import messagebox
 import json
 import sys
-import random
 
 server_ep = ("127.0.0.1", 50001)
 time.sleep(1)
@@ -40,10 +39,10 @@ class App:
                                            background='#cfcfcf')
         self.command_label.grid(row=1, column=0)
 
-        self.button_label = tkinter.Label(self.window, text="Control the robot :",font=("calibri", 20),
-                                           fg='#3d3b3b',
-                                           background='#cfcfcf')
-        self.button_label.grid(row=3,column=0,sticky='n')
+        self.button_label = tkinter.Label(self.window, text="Control the robot :", font=("calibri", 20),
+                                          fg='#3d3b3b',
+                                          background='#cfcfcf')
+        self.button_label.grid(row=3, column=0, sticky='n')
         # IMAGES
 
         self.down_green_arrow = PIL.Image.open("green_arrow.png")
@@ -79,9 +78,9 @@ class App:
 
         # BUTTONS
 
-        self.var = tkinter.IntVar()
-        self.var.set(0)
-        self.manualCommandButton = tkinter.Radiobutton(self.window, text="manually", variable=self.var, value=0, command=self.changeMode)
+        self.var = tkinter.IntVar().set(0)
+        self.manualCommandButton = tkinter.Radiobutton(self.window, text="manually", variable=self.var, value=0,
+                                                       command=self.changeMode)
         self.manualCommandButton.grid(row=3, column=0, sticky='s')
         self.autoCommandButton = tkinter.Radiobutton(self.window, text="automatically", variable=self.var, value=1)
         self.autoCommandButton.grid(row=4, column=0, sticky='n')
@@ -128,7 +127,7 @@ class App:
         self.canvas.create_image(0, 0, imag=self.photo, anchor=tkinter.NW)
         self.window.after(self.delay, self.update_frame)
 
-        if ((time.time() - self.t_prev) > 0.03):
+        if (time.time() - self.t_prev) > 0.03:
             self.automatic_pid_follower()
             t_prev = time.time()
 
@@ -138,23 +137,25 @@ class App:
             self.dic_command["rotate_right"] = False
             self.dic_command["rotate_left"] = False
             self.dic_command["move_backwards"] = False
-            if (key == 'z' and self.dic_command2["forward"]):
+            if key == 'z' and self.dic_command2["forward"]:
                 self.dic_command["move_forward"] = True
                 self.forward_canvas.delete("forward")
-                self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_green_arrow_img, tags='forward')
-            elif (key == 's' and self.dic_command2["backwards"]):
+                self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_green_arrow_img,
+                                                 tags='forward')
+            elif key == 's' and self.dic_command2["backwards"]:
                 self.dic_command["move_backwards"] = True
                 self.forward_canvas.delete("backwards")
                 self.forward_canvas.create_image(150, 150, anchor=tkinter.N, image=self.down_green_arrow_img,
                                                  tags='backwards')
-            elif (key == 'q' and self.dic_command2["left"]):
+            elif key == 'q' and self.dic_command2["left"]:
                 self.dic_command["rotate_left"] = True
                 self.forward_canvas.delete("left")
                 self.forward_canvas.create_image(75, 75, anchor=tkinter.N, image=self.left_green_arrow_img, tags='left')
-            elif (key == 'd' and self.dic_command2["right"]):
+            elif key == 'd' and self.dic_command2["right"]:
                 self.dic_command["rotate_right"] = True
                 self.forward_canvas.delete("right")
-                self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_green_arrow_img, tags='right')
+                self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_green_arrow_img,
+                                                 tags='right')
 
             self.window.update()
             self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
@@ -164,25 +165,27 @@ class App:
 
     def keyup(self, key):
         if self.var.get() == 0:
-            if (key == 'z'):
+            if key == 'z':
                 self.dic_command["move_forward"] = False
                 self.forward_canvas.delete("forward")
-                self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_white_arrow_img, tags='forward')
+                self.forward_canvas.create_image(150, 0, anchor=tkinter.N, image=self.up_white_arrow_img,
+                                                 tags='forward')
 
-            elif (key == 's'):
+            elif key == 's':
                 self.dic_command["move_backwards"] = False
                 self.forward_canvas.delete("backwards")
                 self.forward_canvas.create_image(150, 150, anchor=tkinter.N, image=self.down_white_arrow_img,
                                                  tags='backwards')
 
-            elif (key == 'q'):
+            elif key == 'q':
                 self.dic_command["rotate_left"] = False
                 self.forward_canvas.delete("left")
                 self.forward_canvas.create_image(75, 75, anchor=tkinter.N, image=self.left_white_arrow_img, tags='left')
-            elif (key == 'd'):
+            elif key == 'd':
                 self.dic_command["rotate_right"] = False
                 self.forward_canvas.delete("right")
-                self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_white_arrow_img, tags='right')
+                self.forward_canvas.create_image(225, 75, anchor=tkinter.N, image=self.right_white_arrow_img,
+                                                 tags='right')
 
             self.window.update()
             self.server.send_to(server_ep, Message.command_message(self.dic_command["move_forward"],
@@ -192,8 +195,6 @@ class App:
 
     def on_press(self, key):
         try:
-            print('alphanumeric key {0} pressed'.format(
-                key.char))
             if key.char == 'z' or key.char == 'q' or key.char == 's' or key.char == 'd':
                 self.keydown(key.char)
             else:
@@ -204,8 +205,6 @@ class App:
                 key))
 
     def on_release(self, key):
-        print('{0} released'.format(
-            key))
         try:
             if key.char == 'z' or key.char == 'q' or key.char == 's' or key.char == 'd':
                 self.keyup(key.char)
@@ -223,29 +222,27 @@ class App:
     def sensorValueTranslate(self):
         sensorsMessage = self.serverSensors.getSensorsMessage()
         self.dic_sensors = json.loads(sensorsMessage)
-        print(float(self.dic_sensors["forwardSensor"]))
-        if float(self.dic_sensors["forwardSensor"]) < 1.5 and float(self.dic_sensors["forwardSensor"]) > 0.0:
+        if 1.5 > float(self.dic_sensors["forwardSensor"]) > 0.0:
             self.dic_command2["forward"] = False
         else:
             self.dic_command2["forward"] = True
 
-        if float(self.dic_sensors["backwardsSensor"]) < 1.5 and float(self.dic_sensors["backwardsSensor"]) > 0.0:
+        if 1.5 > float(self.dic_sensors["backwardsSensor"]) > 0.0:
             self.dic_command2["backwards"] = False
         else:
             self.dic_command2["backwards"] = True
 
-        if float(self.dic_sensors["leftSensor"]) < 1.5 and float(self.dic_sensors["leftSensor"]) > 0.0:
+        if 1.5 > float(self.dic_sensors["leftSensor"]) > 0.0:
             self.dic_command2["left"] = False
         else:
             self.dic_command2["left"] = True
 
-        if float(self.dic_sensors["rightSensor"]) < 1.5 and float(self.dic_sensors["rightSensor"]) > 0.0:
+        if 1.5 > float(self.dic_sensors["rightSensor"]) > 0.0:
             self.dic_command2["right"] = False
         else:
             self.dic_command2["right"] = True
 
         self.robotNavigation()
-        print(self.var.get())
 
     def robotNavigation(self):
         if self.var.get() == 1:
@@ -292,5 +289,5 @@ class App:
                 self.keyup('d')
 
     def changeMode(self):
-        print("COUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCOUUUUUUUUUUUUUUUU")
+
         self.server.send_to(server_ep, Message.command_message())
