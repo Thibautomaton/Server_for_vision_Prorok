@@ -78,7 +78,8 @@ class App:
 
         # BUTTONS
 
-        self.var = tkinter.IntVar().set(0)
+        self.var = tkinter.IntVar()
+        self.var.set(0)
         self.manualCommandButton = tkinter.Radiobutton(self.window, text="manually", variable=self.var, value=0,
                                                        command=self.changeMode)
         self.manualCommandButton.grid(row=3, column=0, sticky='s')
@@ -127,9 +128,7 @@ class App:
         self.canvas.create_image(0, 0, imag=self.photo, anchor=tkinter.NW)
         self.window.after(self.delay, self.update_frame)
 
-        if (time.time() - self.t_prev) > 0.03:
-            self.automatic_pid_follower()
-            t_prev = time.time()
+        self.automatic_pid_follower()
 
     def keydown(self, key):
         if self.var.get() == 0:
@@ -277,17 +276,30 @@ class App:
     def automatic_pid_follower(self):
         b_center = self.door_to_heaven.box_center
         errorx = 960 - b_center[0]
+        errory= 610 - b_center[1]
+        b_area = self.door_to_heaven.box_tracked.area()
+        errorScale = 170000 - b_area
 
-        if b_center != (0, 0):
-            if errorx > 60:
-                print("LEFT")
+        if b_center != (0, 0) and b_area!=0 and b_area < 800000:
+            if errorx > 50:
                 self.keydown('q')
                 self.keyup('q')
-            elif errorx < -60:
-                print("RIGHT")
+            elif errorx < -50:
                 self.keydown('d')
                 self.keyup('d')
+            elif errorScale > 20000:
+                self.keydown('z')
+                self.keyup('z')
+            elif errory >12:
+                self.keydown('z')
+                self.keyup('z')
+            elif errory <-12:
+                self.keydown('s')
+                self.keyup('s')
+            elif errorScale < -20000:
+                self.keydown('s')
+                self.keyup('s')
+
 
     def changeMode(self):
-
         self.server.send_to(server_ep, Message.command_message())

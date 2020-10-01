@@ -81,7 +81,6 @@ class Window(Thread):
             elif not b.is_discarded and b.is_being_discarded:
                 cv2.rectangle(self.disp_img, (b.x, b.y), (b.x + b.w, b.y + b.h), (0, 0, 255), 2)
 
-        #TODO release lock
 
     def get_frame(self):
         """
@@ -134,9 +133,10 @@ class Window(Thread):
                 return False
             else:
                 iou = calculate_iou(self.box_detected, self.box_tracked)
-                if iou < 0.3:
+                if iou < 0.4:
                     th1 = Countdown(self.box_tracked)
                     self.box_tracked.is_being_discarded = True
+                    self.init_tracker(self.box_detected)
                     return True
 
         else:

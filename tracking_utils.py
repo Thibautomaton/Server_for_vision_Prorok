@@ -16,6 +16,9 @@ class Box:
         if self.is_being_discarded:
             self.is_discarded =True
 
+    def area(self):
+        return self.w*self.h
+
     def __str__(self):
         return "({}, {}, {}, {})".format(self.x, self.y, self.w, self.h)
 
@@ -28,7 +31,7 @@ class Countdown(object):
         self.b = obj_box
 
     def run(self):
-        for i in range(3):
+        for i in range(2):
             print("is discarding now")
             time.sleep(1)
         self.b.discard()
