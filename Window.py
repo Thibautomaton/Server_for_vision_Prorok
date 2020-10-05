@@ -127,10 +127,11 @@ class Window(Thread):
             if len(boxes_multi_tracking) == 0:
                 self.init_tracker(self.box_detected)
                 return False
-
+                """
             elif self.box_tracked.is_discarded:
                 self.init_tracker(self.box_detected)
                 return False
+                """
             else:
                 iou = calculate_iou(self.box_detected, self.box_tracked)
                 if iou < 0.4:

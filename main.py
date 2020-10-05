@@ -21,10 +21,10 @@ time.sleep(1)
 
 if __name__ == "__main__":
     server = UdpSocket(door_to_heaven, threading_event)
-    server.start_socket("127.0.0.1", 50000, "test")
+    server.start_socket("192.168.1.59", 50000, "test")
 
     serverSensors = UdpSocket(door_to_heaven, threading_event)
-    serverSensors.start_socket("127.0.0.1", 50009, "test")
+    serverSensors.start_socket("192.168.1.59", 50009, "test")
 
     tracking = Tracking(threading_event, trackers, door_to_heaven)
     tracking.start()

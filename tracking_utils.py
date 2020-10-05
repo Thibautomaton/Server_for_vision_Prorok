@@ -37,6 +37,7 @@ class Countdown(object):
         self.b.discard()
 
 
+
 def which_is_foreground(bodies):
     def area(box):
         (x, y, w, h) = box

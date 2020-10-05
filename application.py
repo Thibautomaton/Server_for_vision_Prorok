@@ -10,7 +10,7 @@ from tkinter import messagebox
 import json
 import sys
 
-server_ep = ("127.0.0.1", 50001)
+server_ep = ("192.168.1.88", 50000)
 time.sleep(1)
 
 
@@ -276,30 +276,27 @@ class App:
     def automatic_pid_follower(self):
         b_center = self.door_to_heaven.box_center
         errorx = 960 - b_center[0]
-        errory= 610 - b_center[1]
+        errorh = 550 - self.door_to_heaven.box_tracked.h
         b_area = self.door_to_heaven.box_tracked.area()
-        errorScale = 170000 - b_area
 
-        if b_center != (0, 0) and b_area!=0 and b_area < 800000:
-            if errorx > 50:
+        if b_center != (0, 0) and b_area!=0 and b_area < 400000:
+            if errorx > 150:
                 self.keydown('q')
+                time.sleep(0.01)
                 self.keyup('q')
-            elif errorx < -50:
+            elif errorx < -150:
                 self.keydown('d')
+                time.sleep(0.01)
                 self.keyup('d')
-            elif errorScale > 20000:
-                self.keydown('z')
-                self.keyup('z')
-            elif errory >12:
-                self.keydown('z')
-                self.keyup('z')
-            elif errory <-12:
-                self.keydown('s')
-                self.keyup('s')
-            elif errorScale < -20000:
-                self.keydown('s')
-                self.keyup('s')
 
+            if errorh > 150:
+                self.keydown('z')
+                time.sleep(0.02)
+                self.keyup('z')
+            elif errorh < -150:
+                self.keydown('s')
+                time.sleep(0.003)
+                self.keyup('s')
 
     def changeMode(self):
         self.server.send_to(server_ep, Message.command_message())

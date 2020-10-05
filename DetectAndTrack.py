@@ -26,16 +26,12 @@ class Tracking(Thread):
         print("ok1")
         t_prev = time.time()
         while self.threading_event.wait():
-
             (success, boxes_multi_tracking) = self.trackers.update(self.door_to_heaven.get_frame())
             self.door_to_heaven.tracker_update(boxes_multi_tracking)
-            if time.time() - t_prev > 3:
+            if time.time() - t_prev > 1:
                 print(time.time() - t_prev)
                 t_prev = time.time()
                 # créer encore un nouveau thread qui effctue cette tâche
                 image, boxes_yolo_detection = detect_image(self.door_to_heaven.get_frame(), yolo, all_classes)
 
                 replayDetection = self.door_to_heaven.reliable_tracking(boxes_multi_tracking, boxes_yolo_detection)
-                if replayDetection:
-                    image, boxes_yolo_detection = detect_image(self.door_to_heaven.get_frame(), yolo, all_classes)
-                    replayDetection = self.door_to_heaven.reliable_tracking(boxes_multi_tracking, boxes_yolo_detection)
