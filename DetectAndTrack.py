@@ -34,4 +34,4 @@ class Tracking(Thread):
                 # créer encore un nouveau thread qui effctue cette tâche
                 image, boxes_yolo_detection = detect_image(self.door_to_heaven.get_frame(), yolo, all_classes)
 
-                replayDetection = self.door_to_heaven.reliable_tracking(boxes_multi_tracking, boxes_yolo_detection)
+                replayDetection = self.door_to_heaven.reliable_tracking(boxes_multi_tracking, image, boxes_yolo_detection)

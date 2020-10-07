@@ -40,7 +40,7 @@ class Window(Thread):
 
         return bodies
 
-    def init_tracker(self, roi):
+    def init_tracker(self, image, roi):
         """
         Summary line.
         used on the first frame to draw a box around the object to be tracked
@@ -53,7 +53,7 @@ class Window(Thread):
         """
         roi = tuple(map(int, roi))
         tracker = cv2.TrackerMOSSE_create()
-        self.trackers.add(tracker, self.img, roi)
+        self.trackers.add(tracker, image, roi)
 
     def tracker_update(self, boxes_multi_tracking):
         """
@@ -120,12 +120,12 @@ class Window(Thread):
         """
         self.first_frame = first_frame
 
-    def reliable_tracking(self, boxes_multi_tracking, boxes_yolo_detection):
+    def reliable_tracking(self, boxes_multi_tracking, image, boxes_yolo_detection):
         if boxes_yolo_detection is not None:
             self.box_detected = which_is_foreground(boxes_yolo_detection)
 
             if len(boxes_multi_tracking) == 0:
-                self.init_tracker(self.box_detected)
+                self.init_tracker(image, self.box_detected)
                 return False
                 """
             elif self.box_tracked.is_discarded:
@@ -137,7 +137,7 @@ class Window(Thread):
                 if iou < 0.4:
                     th1 = Countdown(self.box_tracked)
                     self.box_tracked.is_being_discarded = True
-                    self.init_tracker(self.box_detected)
+                    self.init_tracker(image, self.box_detected)
                     return True
 
         else:

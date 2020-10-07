@@ -10,7 +10,7 @@ from tkinter import messagebox
 import json
 import sys
 
-server_ep = ("192.168.1.88", 50000)
+server_ep = ("127.0.0.1", 50001)
 time.sleep(1)
 
 
@@ -289,7 +289,7 @@ class App:
                 time.sleep(0.01)
                 self.keyup('d')
 
-            if errorh > 150:
+            if errorh > 90:
                 self.keydown('z')
                 time.sleep(0.02)
                 self.keyup('z')
